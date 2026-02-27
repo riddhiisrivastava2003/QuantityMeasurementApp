@@ -1,17 +1,20 @@
 package com.bridgelabz.standalone_unit;
 
+import com.bridgelabz.standalone_unit.LengthUnit;
+
 
 
 import java.util.Objects;
 
 public class QuantityLength {
 
+    private static final double EPSILON = 0.0001;
+
     private final double value;
     private final LengthUnit unit;
 
-    private static final double EPSILON = 0.0001;
-
     public QuantityLength(double value, LengthUnit unit) {
+
         if (unit == null)
             throw new IllegalArgumentException("Unit cannot be null");
 
@@ -32,12 +35,12 @@ public class QuantityLength {
 
     // Convert to another unit
     public QuantityLength convertTo(LengthUnit targetUnit) {
-        double baseValue = unit.convertToBaseUnit(this.value);
+        double baseValue = unit.convertToBaseUnit(value);
         double convertedValue = targetUnit.convertFromBaseUnit(baseValue);
-        return new QuantityLength(round(convertedValue), targetUnit);
+        return new QuantityLength(convertedValue, targetUnit);
     }
 
-    // Add with explicit target unit (UC7 compatible)
+    // Addition with explicit target unit (UC7 compatible)
     public QuantityLength add(QuantityLength other, LengthUnit targetUnit) {
 
         double baseValue1 = this.unit.convertToBaseUnit(this.value);
@@ -47,15 +50,13 @@ public class QuantityLength {
 
         double finalValue = targetUnit.convertFromBaseUnit(sumBase);
 
-        return new QuantityLength(round(finalValue), targetUnit);
+        return new QuantityLength(finalValue, targetUnit);
     }
-
 
     @Override
     public boolean equals(Object obj) {
 
         if (this == obj) return true;
-
         if (!(obj instanceof QuantityLength)) return false;
 
         QuantityLength other = (QuantityLength) obj;
@@ -68,15 +69,12 @@ public class QuantityLength {
 
     @Override
     public int hashCode() {
-        return Objects.hash(round(unit.convertToBaseUnit(value)));
-    }
-
-    private double round(double value) {
-        return Math.round(value * 100.0) / 100.0;
+        double baseValue = unit.convertToBaseUnit(value);
+        return Objects.hash(baseValue);
     }
 
     @Override
     public String toString() {
         return "Quantity(" + value + ", " + unit + ")";
     }
-}
+}}
