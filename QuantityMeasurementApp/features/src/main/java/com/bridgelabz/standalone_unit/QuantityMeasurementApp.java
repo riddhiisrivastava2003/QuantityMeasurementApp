@@ -8,15 +8,12 @@ public class QuantityMeasurementApp {
 
         QuantityLength q1 = new QuantityLength(1.0, LengthUnit.FEET);
         System.out.println(q1.convertTo(LengthUnit.INCHES));
-        // Output: Quantity(12.0, INCHES)
 
         QuantityLength q2 = new QuantityLength(12.0, LengthUnit.INCHES);
         System.out.println(q1.add(q2, LengthUnit.FEET));
-        // Output: Quantity(2.0, FEET)
 
         QuantityLength q3 = new QuantityLength(36.0, LengthUnit.INCHES);
         QuantityLength q4 = new QuantityLength(1.0, LengthUnit.YARDS);
         System.out.println(q3.equals(q4));
-        // Output: true
     }
 }

@@ -5,7 +5,7 @@ import java.util.Objects;
 public final class QuantityLength {
 
     private final double value;
-    private final LengthUnit unit;
+    public final LengthUnit unit;
     private static final double EPSILON=0.0001;
 
 
