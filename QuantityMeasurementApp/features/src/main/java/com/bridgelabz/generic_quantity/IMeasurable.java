@@ -20,4 +20,6 @@ public interface IMeasurable {
     }
 
     String getUnitName();
+
+    default boolean supportsArithmetic() {return true;}
 }

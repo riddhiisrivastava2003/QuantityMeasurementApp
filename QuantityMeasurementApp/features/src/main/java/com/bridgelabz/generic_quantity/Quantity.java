@@ -206,7 +206,10 @@ public final class  Quantity<U extends IMeasurable>
 
         if (!Double.isFinite(this.value) || !Double.isFinite(other.value)) throw new IllegalArgumentException("Values must be finite");
 
+        if (!this.unit.supportsArithmetic()) throw new UnsupportedOperationException("Arithmetic not supported for " + unit.getUnitName());
+
         if (targetRequired && targetUnit == null) throw new IllegalArgumentException("Target unit cannot be null");
+
     }
 
 
