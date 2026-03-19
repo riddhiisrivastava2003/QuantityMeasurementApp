@@ -1,7 +1,7 @@
 package com.bridgelabz.controller;
 
 import com.bridgelabz.dto.QuantityDTO;
-import com.bridgelabz.repository.QuantityMeasurementCacheRepository;
+import com.bridgelabz.dump.repository.QuantityMeasurementCacheRepository;
 import com.bridgelabz.service.IQuantityMeasurementService;
 import com.bridgelabz.service.QuantityMeasurementServiceImpl;
 import org.junit.jupiter.api.BeforeEach;

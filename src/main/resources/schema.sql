@@ -10,6 +10,12 @@ CREATE TABLE quantity_measurement_entity (
                                              result BOOLEAN,
                                              created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+CREATE TABLE user (
+                      id BIGINT AUTO_INCREMENT PRIMARY KEY,
+                      username VARCHAR(50),
+                      password VARCHAR(100)
+);
+INSERT INTO user (username, password) VALUES ('admin', '1234');
 
 -- CREATE DATABASE quantity_measurement_db;
 -- USE quantity_measurement_db;

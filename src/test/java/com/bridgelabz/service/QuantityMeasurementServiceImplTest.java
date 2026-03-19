@@ -1,7 +1,7 @@
 package com.bridgelabz.service;
 
 import com.bridgelabz.dto.QuantityDTO;
-import com.bridgelabz.repository.QuantityMeasurementCacheRepository;
+import com.bridgelabz.dump.repository.QuantityMeasurementCacheRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 

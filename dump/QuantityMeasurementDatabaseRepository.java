@@ -94,7 +94,7 @@
 //
 //}
 
-package com.bridgelabz.repository;
+package com.bridgelabz.dump.repository;
 
 import com.bridgelabz.entity.QuantityMeasurementEntity;
 import com.bridgelabz.util.ConnectionPool;
