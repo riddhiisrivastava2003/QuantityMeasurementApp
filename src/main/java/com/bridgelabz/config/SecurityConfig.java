@@ -39,13 +39,13 @@ public class SecurityConfig {
         return http.build();
     }
 
-    // 🔐 Password Encoder
+    //  Password Encoder
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
 
-    // 🔑 Authentication Manager
+    // Authentication Manager
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
         return config.getAuthenticationManager();
