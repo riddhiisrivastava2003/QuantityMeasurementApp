@@ -18,7 +18,7 @@ public class QuantityMeasurementServiceImpl implements IQuantityMeasurementServi
     @Autowired
     private QuantityMeasurementRepository repository;
 
-    // 🔥 COMMON VALIDATION
+    // COMMON VALIDATION
     private void validateSameType(IMeasurable u1, IMeasurable u2) {
         if (!u1.getMeasurementType().equals(u2.getMeasurementType())) {
             throw new QuantityMeasurementException("Different measurement types");
@@ -115,7 +115,7 @@ public class QuantityMeasurementServiceImpl implements IQuantityMeasurementServi
         return q1.getValue() / q2.getValue();
     }
 
-    // CONVERT (MAIN FOR TEMPERATURE 🔥)
+    // CONVERT (MAIN FOR TEMPERATURE)
     @Override
     public double convert(double value, String fromUnit, String toUnit) {
 
