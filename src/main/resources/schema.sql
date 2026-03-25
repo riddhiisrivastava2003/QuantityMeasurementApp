@@ -8,8 +8,7 @@ CREATE TABLE quantity_measurement_entity (
                                              unit2 VARCHAR(50),
                                              value2 DOUBLE,
                                              result BOOLEAN,
-                                             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
+                                             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP);
 CREATE TABLE user (
                       id BIGINT AUTO_INCREMENT PRIMARY KEY,
                       username VARCHAR(50),
