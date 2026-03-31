@@ -1,0 +1,74 @@
+#POST http://localhost:8080/api/quantity/convert
+#Content-Type: application/json
+#
+#{
+#  "value": 10,
+#  "fromUnit": "FEET",
+#  "toUnit": "INCHES"
+#}
+
+
+
+
+#POST http://localhost:8080/api/quantity/compare
+#Content-Type: application/json
+#
+#{
+#"q1": {
+#"value": 1,
+#"unit": "FEET"
+#},
+#"q2": {
+#"value": 12,
+#"unit": "INCHES"
+#}
+#}
+
+#POST http://localhost:8080/api/quantity/add
+#Content-Type: application/json
+#
+#{
+#  "q1": {
+#    "value": 1,
+#    "unit": "FEET"
+#  },
+#  "q2": {
+#    "value": 12,
+#    "unit": "INCHES"
+#  }
+#}
+
+#POST http://localhost:8080/api/quantity/subtract
+#Content-Type: application/json
+#
+#{
+#  "q1": {
+#    "value": 4,
+#    "unit": "YARD"
+#  },
+#  "q2": {
+#    "value": 1,
+#    "unit": "FEET"
+#  }
+#}
+
+#POST http://localhost:8080/api/quantity/divide
+#Content-Type: application/json
+#
+#{
+#"q1": {
+#"value": 10,
+#"unit": "FEET"
+#},
+#"q2": {
+#"value": 2,
+#"unit": "FEET"
+#}
+#}
+
+GET http://localhost:8080/api/quantity/all
+Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJhZG1pbiIsImlhdCI6MTc3NDk1MTY0NSwiZXhwIjoxNzc0OTU1MjQ1fQ.QiMpQt0ycnfqYvnm8Bf57gxpTIS8ZU2UFd8o1AE3Xz0
+
+#GET http://localhost:8080/api/quantity/1
+
+#DELETE http://localhost:8080/api/quantity/1
