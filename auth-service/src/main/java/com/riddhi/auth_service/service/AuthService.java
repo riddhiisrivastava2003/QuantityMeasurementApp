@@ -2,7 +2,7 @@ package com.riddhi.auth_service.service;
 
 import com.riddhi.auth_service.entity.User;
 import com.riddhi.auth_service.repository.UserRepository;
-import com.riddhi.auth_service.security.JwtUtil;
+import com.riddhi.auth_service.service.JwtService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -18,8 +18,9 @@ public class AuthService {
     @Autowired
     private PasswordEncoder passwordEncoder;
 
+
     @Autowired
-    private JwtUtil jwtUtil;
+    private JwtService jwtService;
 
     public String login(String username, String password) {
 
@@ -31,7 +32,7 @@ public class AuthService {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid password");
         }
 
-        return jwtUtil.generateToken(user.getUsername(), user.getRole());
+        return jwtService.generateToken(user.getUsername());
     }
 
     public void logout(String token) {

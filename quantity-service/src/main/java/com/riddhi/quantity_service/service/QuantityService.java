@@ -105,6 +105,7 @@ import com.riddhi.quantity_service.entity.QuantityOperation;
 import com.riddhi.quantity_service.exceptions.ResourceNotFoundException;
 import com.riddhi.quantity_service.repository.QuantityRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.cache.annotation.Cacheable;
 
 import java.util.List;
 
@@ -205,7 +206,10 @@ public class QuantityService {
     }
 
     // 🔁 CONVERSION LOGIC
+    @Cacheable(value = "conversions", key = "#value + '-' + #from + '-' + #to")
     public double convert(double value, String from, String to) {
+
+        System.out.println("Actual conversion happening...");
 
         from = from.toUpperCase();
         to = to.toUpperCase();
