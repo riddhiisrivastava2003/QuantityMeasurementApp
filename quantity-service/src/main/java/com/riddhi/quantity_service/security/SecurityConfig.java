@@ -25,24 +25,22 @@ public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-
         http
                 .csrf(AbstractHttpConfigurer::disable)
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .authorizeHttpRequests(auth -> auth
-                        // Public endpoints - no auth needed
-                        .requestMatchers("/api/quantity/test").permitAll()
-                        .requestMatchers("/api/quantity/convert").permitAll()
-                        .requestMatchers("/api/quantity/health").permitAll()
-                        // History requires auth
+                        // Public endpoints
+                        .requestMatchers("/api/quantity/test", "/api/quantity/health", "/api/quantity/convert").permitAll()
+                        // ✅ Swagger / OpenAPI — public
+                        .requestMatchers(
+                            "/v3/api-docs/**", "/swagger-ui/**",
+                            "/swagger-ui.html", "/swagger-resources/**", "/webjars/**"
+                        ).permitAll()
                         .anyRequest().authenticated()
                 )
-                .sessionManagement(session ->
-                        session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-                );
+                .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
 
         http.addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
-
         return http.build();
     }
 
@@ -53,8 +51,6 @@ public class SecurityConfig {
         config.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         config.setAllowedHeaders(List.of("*"));
         config.setAllowCredentials(true);
-        config.setMaxAge(3600L);
-
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", config);
         return source;

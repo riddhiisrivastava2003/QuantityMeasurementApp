@@ -4,6 +4,15 @@ import com.riddhi.auth_service.entity.User;
 import com.riddhi.auth_service.repository.UserRepository;
 import com.riddhi.auth_service.service.AuthService;
 import com.riddhi.auth_service.service.JwtService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.ExampleObject;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -16,6 +25,7 @@ import java.util.Map;
 @RestController
 @RequestMapping("/api/auth")
 @CrossOrigin(origins = {"http://localhost:5173", "http://localhost:3000"})
+@Tag(name = "Authentication", description = "User registration, login, logout and profile management")
 public class AuthController {
 
     @Autowired private AuthService authService;
@@ -23,7 +33,26 @@ public class AuthController {
     @Autowired private PasswordEncoder passwordEncoder;
     @Autowired private JwtService jwtService;
 
-    // LOGIN
+    // ── LOGIN ────────────────────────────────────────────────────────────
+    @Operation(
+        summary = "Login user",
+        description = "Authenticate with username & password. Returns a JWT token valid for 1 hour."
+    )
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Login successful — JWT token returned",
+            content = @Content(mediaType = "application/json",
+                examples = @ExampleObject(value = """
+                    {"token":"eyJ...","username":"john","email":"","role":"USER","provider":"local","id":1,"createdAt":"2025-01-01T10:00:00","message":"Success"}
+                    """))),
+        @ApiResponse(responseCode = "401", description = "Invalid credentials"),
+        @ApiResponse(responseCode = "400", description = "Missing username or password")
+    })
+    @io.swagger.v3.oas.annotations.parameters.RequestBody(
+        required = true,
+        content = @Content(examples = @ExampleObject(value = """
+            {"username": "admin", "password": "admin123"}
+            """))
+    )
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody Map<String, String> body) {
         String username = body.get("username");
@@ -39,7 +68,21 @@ public class AuthController {
         }
     }
 
-    // REGISTER (alias: signup)
+    // ── REGISTER ─────────────────────────────────────────────────────────
+    @Operation(
+        summary = "Register new user",
+        description = "Create a new local account. Email is optional but recommended for Google OAuth linking."
+    )
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Registration successful — JWT token returned"),
+        @ApiResponse(responseCode = "400", description = "Username already exists or email already registered")
+    })
+    @io.swagger.v3.oas.annotations.parameters.RequestBody(
+        required = true,
+        content = @Content(examples = @ExampleObject(value = """
+            {"username": "john_doe", "password": "SecurePass123", "email": "john@example.com"}
+            """))
+    )
     @PostMapping("/register")
     public ResponseEntity<?> register(@RequestBody Map<String, String> body) {
         return signup(body);
@@ -70,19 +113,39 @@ public class AuthController {
         return ResponseEntity.ok(buildUserResponse(token, user));
     }
 
-    // LOGOUT
+    // ── LOGOUT ───────────────────────────────────────────────────────────
+    @Operation(
+        summary = "Logout user",
+        description = "Invalidates the session. Client should delete the JWT token."
+    )
+    @ApiResponse(responseCode = "200", description = "Logged out successfully")
+    @SecurityRequirement(name = "BearerAuth")
     @PostMapping("/logout")
-    public ResponseEntity<?> logout(@RequestHeader(value = "Authorization", required = false) String authHeader) {
+    public ResponseEntity<?> logout(
+            @RequestHeader(value = "Authorization", required = false) String authHeader) {
         if (authHeader != null && authHeader.startsWith("Bearer "))
             authService.logout(authHeader.substring(7));
         return ResponseEntity.ok(Map.of("message", "Logged out successfully"));
     }
 
-    // PROFILE — supports both JWT header and gateway-forwarded X-User-Name
+    // ── PROFILE ──────────────────────────────────────────────────────────
+    @Operation(
+        summary = "Get current user profile",
+        description = "Returns profile of the authenticated user. Supports JWT Bearer token or X-User-Name header (forwarded by API Gateway)."
+    )
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Profile returned",
+            content = @Content(examples = @ExampleObject(value = """
+                {"id":1,"username":"john_doe","email":"john@example.com","role":"USER","provider":"local","createdAt":"2025-01-01T10:00:00"}
+                """))),
+        @ApiResponse(responseCode = "401", description = "Unauthorized — missing or invalid token")
+    })
+    @SecurityRequirement(name = "BearerAuth")
 //    @GetMapping("/profile")
 //    public ResponseEntity<?> getProfile(
-//            @RequestHeader(value = "Authorization", required = false) String authHeader,
-//            @RequestHeader(value = "X-User-Name",   required = false) String xUsername) {
+//            @Parameter(hidden = true) @RequestHeader(value = "Authorization", required = false) String authHeader,
+//            @Parameter(description = "Username forwarded by API Gateway", hidden = true)
+//            @RequestHeader(value = "X-User-Name", required = false) String xUsername) {
 //        try {
 //            String username = null;
 //            if (xUsername != null && !xUsername.isEmpty()) {
@@ -99,6 +162,7 @@ public class AuthController {
 //            return ResponseEntity.status(401).body(Map.of("error", e.getMessage()));
 //        }
 //    }
+
     @GetMapping("/profile")
     public ResponseEntity<?> getProfile(
             @RequestHeader(value = "Authorization", required = false) String authHeader,
@@ -130,12 +194,15 @@ public class AuthController {
         }
     }
 
+    // ── HEALTH ───────────────────────────────────────────────────────────
+    @Operation(summary = "Health check", description = "Returns service status.")
+    @ApiResponse(responseCode = "200", description = "Service is running")
     @GetMapping("/health")
     public ResponseEntity<?> health() {
-        return ResponseEntity.ok(Map.of("status", "Auth Service Running"));
+        return ResponseEntity.ok(Map.of("status", "Auth Service Running ✅", "port", 8082));
     }
 
-    // ── helpers ─────────────────────────────────────────────────────────
+    // ── helpers ──────────────────────────────────────────────────────────
     private Map<String, Object> buildUserResponse(String token, User user) {
         Map<String, Object> res = new HashMap<>(buildProfileMap(user));
         res.put("token", token);

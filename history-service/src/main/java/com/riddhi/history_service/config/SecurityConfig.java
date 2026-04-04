@@ -29,6 +29,11 @@ public class SecurityConfig {
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/history/health").permitAll()
+                        // ✅ Swagger / OpenAPI
+                        .requestMatchers(
+                            "/v3/api-docs/**", "/swagger-ui/**",
+                            "/swagger-ui.html", "/swagger-resources/**", "/webjars/**"
+                        ).permitAll()
                         .anyRequest().authenticated()
                 )
                 .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
