@@ -1,0 +1,27 @@
+version: '3.8'
+
+services:
+
+  api-gateway:
+    build: ./api-gateway
+    ports:
+      - "8080:8080"
+    depends_on:
+      - auth-service
+      - quantity-service
+      - history-service
+
+  auth-service:
+    build: ./auth-service
+    ports:
+      - "8081:8081"
+
+  quantity-service:
+    build: ./quantity-service
+    ports:
+      - "8082:8082"
+
+  history-service:
+    build: ./history-service
+    ports:
+      - "8083:8083"
