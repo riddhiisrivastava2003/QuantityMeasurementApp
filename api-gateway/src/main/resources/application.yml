@@ -39,6 +39,7 @@ spring:
           predicates:
             - Path=/api/quantity/**
 
+
         - id: history-service
           uri: lb://history-service
           predicates:
