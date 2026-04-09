@@ -34,11 +34,21 @@ spring:
           predicates:
             - Path=/api/auth/**
 
+        # OAuth2 routes — forward to auth-service so Google OAuth works through gateway too
+        - id: auth-oauth2
+          uri: lb://auth-service
+          predicates:
+            - Path=/oauth2/**
+
+        - id: auth-login-oauth2
+          uri: lb://auth-service
+          predicates:
+            - Path=/login/oauth2/**
+
         - id: quantity-service
           uri: lb://quantity-service
           predicates:
             - Path=/api/quantity/**
-
 
         - id: history-service
           uri: lb://history-service
