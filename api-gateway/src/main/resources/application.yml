@@ -10,8 +10,12 @@ spring:
       globalcors:
         corsConfigurations:
           '[/**]':
-            # Allow all origins — covers Vercel, Railway, localhost
-            allowedOriginPatterns: "*"
+            # FIX: Use explicit allowedOrigins instead of allowedOriginPatterns with allowCredentials:true
+            # Spring rejects wildcard pattern + allowCredentials combination
+            allowedOrigins:
+              - "https://quantity-measurement-app-frontend-puce.vercel.app"
+              - "http://localhost:5173"
+              - "http://localhost:3000"
             allowedMethods:
               - GET
               - POST
@@ -23,46 +27,43 @@ spring:
             allowCredentials: true
             maxAge: 3600
 
+      # FIX: Disable Eureka-based discovery routing — gateway is on Render, services on Railway
+      # lb:// URIs won't work cross-platform. Use static env-var URLs instead.
       discovery:
         locator:
-          enabled: true
-          lower-case-service-id: true
+          enabled: false
 
       routes:
         - id: auth-service
-          uri: lb://auth-service
+          uri: ${AUTH_SERVICE_URL:http://localhost:8082}
           predicates:
             - Path=/api/auth/**
 
         # OAuth2 routes — forward to auth-service so Google OAuth works through gateway too
         - id: auth-oauth2
-          uri: lb://auth-service
+          uri: ${AUTH_SERVICE_URL:http://localhost:8082}
           predicates:
             - Path=/oauth2/**
 
         - id: auth-login-oauth2
-          uri: lb://auth-service
+          uri: ${AUTH_SERVICE_URL:http://localhost:8082}
           predicates:
             - Path=/login/oauth2/**
 
         - id: quantity-service
-          uri: lb://quantity-service
+          uri: ${QUANTITY_SERVICE_URL:http://localhost:8081}
           predicates:
             - Path=/api/quantity/**
 
         - id: history-service
-          uri: lb://history-service
+          uri: ${HISTORY_SERVICE_URL:http://localhost:8083}
           predicates:
             - Path=/api/history/**
 
 eureka:
   client:
-    enabled: true
-    service-url:
-      defaultZone: ${EUREKA_URL:http://localhost:8761/eureka/}
-  instance:
-    prefer-ip-address: true
-    hostname: ${RAILWAY_PRIVATE_DOMAIN:localhost}
+    # FIX: Disable Eureka client on gateway — cross-platform discovery doesn't work
+    enabled: false
 
 # Logging
 logging:
