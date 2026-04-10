@@ -10,8 +10,6 @@ spring:
       globalcors:
         corsConfigurations:
           '[/**]':
-            # FIX: Use explicit allowedOrigins instead of allowedOriginPatterns with allowCredentials:true
-            # Spring rejects wildcard pattern + allowCredentials combination
             allowedOrigins:
               - "https://quantity-measurement-app-frontend-puce.vercel.app"
               - "http://localhost:5173"
@@ -27,11 +25,13 @@ spring:
             allowCredentials: true
             maxAge: 3600
 
-      # FIX: Disable Eureka-based discovery routing — gateway is on Render, services on Railway
-      # lb:// URIs won't work cross-platform. Use static env-var URLs instead.
       discovery:
         locator:
           enabled: false
+
+      # DedupeResponseHeader — safety net if downstream ever adds CORS headers again
+      default-filters:
+        - DedupeResponseHeader=Access-Control-Allow-Origin Access-Control-Allow-Credentials, RETAIN_FIRST
 
       routes:
         - id: auth-service
@@ -39,7 +39,6 @@ spring:
           predicates:
             - Path=/api/auth/**
 
-        # OAuth2 routes — forward to auth-service so Google OAuth works through gateway too
         - id: auth-oauth2
           uri: ${AUTH_SERVICE_URL:http://localhost:8082}
           predicates:
@@ -62,15 +61,12 @@ spring:
 
 eureka:
   client:
-    # FIX: Disable Eureka client on gateway — cross-platform discovery doesn't work
     enabled: false
 
-# Logging
 logging:
   level:
     org.springframework.cloud.gateway: INFO
 
-# Actuator for health checks (Railway uses this)
 management:
   endpoints:
     web:
