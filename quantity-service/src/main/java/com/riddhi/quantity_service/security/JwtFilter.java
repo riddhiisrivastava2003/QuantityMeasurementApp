@@ -44,3 +44,15 @@ public class JwtFilter extends OncePerRequestFilter {
         filterChain.doFilter(request, response);
     }
 }
+
+//Auth Service
+//  → generate JWT
+//
+//API Gateway
+//  → validate JWT
+//  → extract username
+//  → forward header
+//
+//Quantity Service
+//  → read header
+//  → trust gateway

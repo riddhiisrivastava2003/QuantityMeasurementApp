@@ -15,6 +15,9 @@ import java.util.List;
 
 @Configuration
 public class SwaggerConfig {
+    //SwaggerConfig API documentation,
+    // testing UI aur JWT-based authorization support provide karta hai
+    // developers ke liye
 
     @Bean
     public OpenAPI authServiceOpenAPI() {

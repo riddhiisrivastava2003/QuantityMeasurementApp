@@ -274,31 +274,44 @@ import org.springframework.security.config.annotation.web.configurers.AbstractHt
 import java.time.LocalDateTime;
 import java.util.List;
 
-@Configuration
+@Configuration //ye config class hai, security setup yahan hai
 public class SecurityConfig {
 
-    @Autowired private JwtFilter jwtFilter;
-    @Autowired private UserRepository userRepository;
+    @Autowired private JwtFilter jwtFilter; //JWT check karega
+    @Autowired private UserRepository userRepository; //OAuth login ke time user DB me save karega
 
     // Injected from application.properties → env var FRONTEND_URL
-    @Value("${frontend.url:http://localhost:5173}")
+    @Value("${frontend.url:http://localhost:5173}") //Local + production dono me kaam karega
     private String frontendUrl;
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http, JwtService jwtService) throws Exception {
         http
                 .csrf(AbstractHttpConfigurer::disable)
+                //// CSRF disable: REST APIs stateless hain, CSRF tokens zaroori nahi Tum JWT use kar rahi ho → statelessIsliye disable
+                //            // CSRF attacks session-based auth par kaam karte hain
                 .cors(AbstractHttpConfigurer::disable)
+                // CORS configuration — browser cross-origin requests allow karna
+                //Yahan tumne disable kiya hai
+                // Kyunki Gateway pe already CORS handle ho raha hai
+
                 .formLogin(AbstractHttpConfigurer::disable)
+                // Default Spring login form disable — hum custom login use karte hain
                 .httpBasic(AbstractHttpConfigurer::disable)
+                // HTTP Basic Auth disable — JWT use karte hain
                 .sessionManagement(session ->
                         session.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)
+                        //OAuth2 login ke liye session chahiye is liye ifrequeired state store karne ke liye
                 )
+                // OAuth2 ke liye sessions zaroori hain (state parameter store karna)
+                // Pure JWT services mein STATELESS hota hai
+
                 .exceptionHandling(ex -> ex
                         .authenticationEntryPoint((req, res, e) -> {
                             res.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
                             res.setContentType("application/json");
                             res.getWriter().write("{\"error\":\"Unauthorized\"}");
+                            //Agar unauthorized request aaye: error unatuhtorized
                         })
                 )
                 .authorizeHttpRequests(auth -> auth
@@ -306,21 +319,28 @@ public class SecurityConfig {
                                 "/api/auth/login", "/api/auth/signup",
                                 "/api/auth/register", "/api/auth/health",
                                 "/oauth2/**", "/login/**"
-                        ).permitAll()
+                        ).permitAll() //token nhi chahiye
                         .requestMatchers(
                                 "/v3/api-docs/**", "/swagger-ui/**",
                                 "/swagger-ui.html", "/swagger-resources/**", "/webjars/**"
-                        ).permitAll()
-                        .anyRequest().authenticated()
+                        ).permitAll() // In paths par token check mat karo
+                        .anyRequest().authenticated() //baaki sab autheniticated
                 )
                 .oauth2Login(oauth -> oauth.successHandler(successHandler(jwtService)));
+        // oauth2Login: Google OAuth2 flow enable karo
+        // successHandler: successful login ke baad kya karo
+
 
         http.addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
+        //JWT check pehle hoga
+        // Phir Spring security
+        // JwtFilter ko Spring Security ke default password filter SE PEHLE lagao
         return http.build();
     }
 
     @Bean
     public AuthenticationSuccessHandler successHandler(JwtService jwtService) {
+
         return (request, response, authentication) -> {
             OAuth2User oauthUser = (OAuth2User) authentication.getPrincipal();
             String email = oauthUser.getAttribute("email");
@@ -331,7 +351,7 @@ public class SecurityConfig {
                 String base = (name != null ? name.replaceAll("\\s+", "").toLowerCase() : "user");
                 String username = base;
                 int attempt = 1;
-                while (userRepository.findByUsername(username).isPresent()) {
+                while (userRepository.findByUsername(username).isPresent()) { //Unique username banata hai
                     username = base + attempt++;
                 }
                 User u = new User();
@@ -341,10 +361,10 @@ public class SecurityConfig {
                 u.setRole("USER");
                 u.setProvider("google");
                 u.setCreatedAt(LocalDateTime.now());
-                return userRepository.save(u);
+                return userRepository.save(u); //DB me insert
             });
 
-            String token = jwtService.generateToken(user.getUsername());
+            String token = jwtService.generateToken(user.getUsername()); //Ab user ke liye JWT ban gaya
 
             // Use FRONTEND_URL env var — works for both local and production
             String redirectUrl = frontendUrl + "/oauth-callback"
@@ -356,3 +376,28 @@ public class SecurityConfig {
         };
     }
 }
+//Client
+//  ↓
+//SecurityConfig
+//  ↓
+//JwtFilter
+//  ↓
+//Controller (login/signup)
+//  ↓
+//Service
+//  ↓
+//Repository
+//  ↓
+//DB
+
+//User → Google Login
+//      ↓
+//Spring Security
+//      ↓
+//successHandler
+//      ↓
+//Save User
+//      ↓
+//Generate JWT
+//      ↓
+//Redirect to Frontend

@@ -76,45 +76,98 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import java.io.IOException;
 import java.util.Collections;
 
+//Ye filter ka kaam hai:
+//
+// JWT ko read karna
+// validate karna
+// Spring Security ko batana: “user authenticated hai
 
+//Gateway	Token validate (first check)
+//Auth Service	Authentication set in Spring
+
+//Gateway: “Gatekeeper”
+//✔️ Auth Filter: “Login session creator
 
 @Component
 public class JwtFilter extends OncePerRequestFilter {
 
+    // OncePerRequestFilter: har request mein exactly ek baar fire hota hai
+    // Even agar request forward/redirect ho
+
+
     @Autowired
-    private JwtService jwtService;
+    private JwtService jwtService; //username nikalne ke liye token validate karne ke liye
 
     @Override
     protected void doFilterInternal(HttpServletRequest request,
                                     HttpServletResponse response,
                                     FilterChain filterChain)
+            //ye method har request pe run hota hai
             throws ServletException, IOException {
 
-        String authHeader = request.getHeader("Authorization");
+        String authHeader = request.getHeader("Authorization"); //AUTH HEADER LO
 
         if (authHeader != null && authHeader.startsWith("Bearer ")) {
+            //Agar token nahi: skip next filter pe jao
 
             String token = authHeader.substring(7);
 
             try {
-                String email = jwtService.extractUsername(token);
+                // Check: SecurityContext mein already authentication set hai?
+                // Agar hai toh dobara set mat karo (duplicate prevention)
 
-                if (email != null && SecurityContextHolder.getContext().getAuthentication() == null) {
+                String email = jwtService.extractUsername(token); //username extrat
 
-                    if (jwtService.validateToken(token, email)) {
+                if (email != null && SecurityContextHolder.getContext().getAuthentication() == null) { //email extract
+                    //Agar already authentication set hai: dobara set mat karo duplicate avoid
+
+                    if (jwtService.validateToken(token, email)) { //TOKEN VALIDATE
+                        // Authentication object banao aur SecurityContext mein daal do
 
                         UsernamePasswordAuthenticationToken auth =
                                 new UsernamePasswordAuthenticationToken(email, null, Collections.emptyList());
+                        //isse Spring ko pata chalta hai: user logged in hai
 
-                        SecurityContextHolder.getContext().setAuthentication(auth);
+                        SecurityContextHolder.getContext().setAuthentication(auth); //“User authenticated hai”
                     }
                 }
 
             } catch (Exception e) {
                 System.out.println("JWT error: " + e.getMessage());
+                // Invalid token — silently fail, filter chain continue karo
+                // authorizeHttpRequests() step pe request reject hogi
+
             }
         }
 
         filterChain.doFilter(request, response);
     }
 }
+
+//Request
+//  ↓
+//Check Authorization Header
+//  ↓
+//Extract Token
+//  ↓
+//Extract Username
+//  ↓
+//Validate Token
+//  ↓
+//Create Authentication
+//  ↓
+//Set SecurityContext
+//  ↓
+//Forward Request
+
+//JwtFilter
+//  ↓
+//Extract token
+//  ↓
+//Username → riddhi
+//  ↓
+//Token valid ✔️
+//  ↓
+//SecurityContext set
+//  ↓
+//Controller access allowed

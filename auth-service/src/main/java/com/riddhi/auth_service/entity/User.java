@@ -10,6 +10,16 @@ import java.time.LocalDateTime;
 @Data
 public class User {
 
+    //users
+    //----------------------------------
+    //id (PK)
+    //username (unique)
+    //password
+    //role
+    //email (unique)
+    //provider
+    //createdAt
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;

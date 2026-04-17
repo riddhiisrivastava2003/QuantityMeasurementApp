@@ -22,23 +22,38 @@ import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
 
-@RestController
-@RequestMapping("/api/auth")
-@CrossOrigin(origins = {"*"})
+//AuthController REST endpoints provide karta hai login,
+// registration, profile access aur logout ke liye, jahan
+// JWT-based authentication use hota hai aur user identity ko
+// efficiently handle kiya jata hai Gateway headers ya token
+// parsing ke through
+
+@RestController //REST APIs
+@RequestMapping("/api/auth") //base path
+@CrossOrigin(origins = {"*"}) //sabko allow
 @Tag(name = "Authentication", description = "User registration, login, logout and profile management")
 public class AuthController {
 
-    @Autowired private AuthService authService;
-    @Autowired private UserRepository userRepository;
-    @Autowired private PasswordEncoder passwordEncoder;
-    @Autowired private JwtService jwtService;
+    @Autowired private AuthService authService; //login logic
+    @Autowired private UserRepository userRepository; //db
+    @Autowired private PasswordEncoder passwordEncoder; //password hash
+    @Autowired private JwtService jwtService; //token
 
     // ── LOGIN ────────────────────────────────────────────────────────────
+    //Swagger annotations API endpoints ko document karte hain jisse developers easily samajh sake ki API kaise use karni hai, kya input dena hai aur kya response milega
     @Operation(
         summary = "Login user",
+        //API ka title + explanation
         description = "Authenticate with username & password. Returns a JWT token valid for 1 hour."
+            //swagger ui me dikhega
+            //Login user
+            //Authenticate with username & password...developer ko samajh aata hai API kya karta hai
     )
-    @ApiResponses({
+    @ApiResponses({//API kya-kya responses de sakta hai
+            //Swagger UI me:
+            //200 → Success
+            //401 → Unauthorized
+            //400 → Bad Request
         @ApiResponse(responseCode = "200", description = "Login successful — JWT token returned",
             content = @Content(mediaType = "application/json",
                 examples = @ExampleObject(value = """
@@ -60,7 +75,7 @@ public class AuthController {
         if (username == null || password == null)
             return ResponseEntity.badRequest().body(Map.of("error", "Username and password required"));
         try {
-            String token = authService.login(username.trim(), password);
+            String token = authService.login(username.trim(), password); //password match token generate
             User user = userRepository.findByUsername(username.trim()).orElseThrow();
             return ResponseEntity.ok(buildUserResponse(token, user));
         } catch (Exception e) {
@@ -102,7 +117,7 @@ public class AuthController {
 
         User user = new User();
         user.setUsername(username.trim());
-        user.setPassword(passwordEncoder.encode(password));
+        user.setPassword(passwordEncoder.encode(password));//Password plain text me save nahi hota
         user.setEmail(email != null ? email.trim() : null);
         user.setRole("USER");
         user.setProvider("local");
@@ -204,7 +219,10 @@ public class AuthController {
 
     // ── helpers ──────────────────────────────────────────────────────────
     private Map<String, Object> buildUserResponse(String token, User user) {
+        // buildUserResponse() ->token + user data return karta hai
         Map<String, Object> res = new HashMap<>(buildProfileMap(user));
+        //buildProfileMap()
+        //user object → JSON map
         res.put("token", token);
         res.put("message", "Success");
         return res;
@@ -221,3 +239,31 @@ public class AuthController {
         return m;
     }
 }
+
+//POST /api/auth/login
+//  ↓
+//AuthController
+//  ↓
+//AuthService
+//  ↓
+//UserRepository
+//  ↓
+//Password match
+//  ↓
+//JwtService.generateToken()
+//  ↓
+//Response (token)
+
+//GET /api/auth/profile
+//  ↓
+//Gateway
+//  ↓
+//JwtFilter
+//  ↓
+//AuthController
+//  ↓
+//Get username
+//  ↓
+//DB fetch
+//  ↓
+//Return profile

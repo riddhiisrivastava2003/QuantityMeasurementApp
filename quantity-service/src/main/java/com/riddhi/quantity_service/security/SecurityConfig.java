@@ -138,17 +138,25 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 import java.util.List;
 
 @Configuration
-@EnableWebSecurity
+@EnableWebSecurity //Spring Security ON
 public class SecurityConfig {
+
+    //JWT validation already gateway pe ho chuka hai
+    // yahan sirf request allow + optional auth context handle hota hai
 
     @Autowired
     private JwtFilter jwtFilter;
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+        //Request aaye → kaun allowed → kaun blocked → kaise process hoga
         http
                 .csrf(AbstractHttpConfigurer::disable)
-                .cors(AbstractHttpConfigurer::disable)
+                //CSRF protection OFF: Why?
+                //Tum REST API bana rahi ho JWT based auth hai session-based login nahi
+                //isliye CSRF unnecessary
+
+                .cors(AbstractHttpConfigurer::disable) //Tumne gateway me already CORS handle kiya hai
                 .authorizeHttpRequests(auth -> auth
                         // Public endpoints
                         .requestMatchers("/api/quantity/test", "/api/quantity/health", "/api/quantity/convert").permitAll()
@@ -160,8 +168,17 @@ public class SecurityConfig {
                         .anyRequest().authenticated()
                 )
                 .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
+        //Server session store nahi karega
 
-        http.addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
+        http.addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class); //JWT Filter → THEN Spring Security
         return http.build();
     }
 }
+
+//Request
+//  ↓
+//JwtFilter (token/header check)
+//  ↓
+//Spring Security
+//  ↓
+//Controller

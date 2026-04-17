@@ -1,5 +1,5 @@
 server:
-  port: ${PORT:8080}
+  port: ${PORT:8080} #Gateway kis port pe chalega
 
 spring:
   application:
@@ -7,9 +7,9 @@ spring:
 
   cloud:
     gateway:
-      globalcors:
+      globalcors: #Ye frontend ko allow karta hai backend call karne ke liye
         corsConfigurations:
-          '[/**]':
+          '[/**]':   # Saari paths par CORS apply karo
             allowedOrigins:
               - "https://quantity-measurement-app-frontend-puce.vercel.app"
               - "http://localhost:5173"
@@ -23,15 +23,16 @@ spring:
               - PATCH
             allowedHeaders: "*"
             allowCredentials: true
-            maxAge: 3600
+            maxAge: 3600 # 1 ghante tak preflight cache karo
 
       discovery:
         locator:
-          enabled: false
+          enabled: false #Static routing use ho raha hai not eureka kyuki services alag alag jagah deployed h
 
       # DedupeResponseHeader — safety net if downstream ever adds CORS headers again
       default-filters:
         - DedupeResponseHeader=Access-Control-Allow-Origin Access-Control-Allow-Credentials, RETAIN_FIRST
+        #Duplicate headers remove karta hai First value rakhta hai
 
       routes:
         - id: auth-service
@@ -61,7 +62,8 @@ spring:
 
 eureka:
   client:
-    enabled: false
+    enabled: false # Cross-platform pe discovery kaam nahi karta kyuki services different platforms pr padi hui h
+    #humne yahan static routing use kiya hai instead of Eureka-based discovery kyunki services different platforms pe deployed hain
 
 logging:
   level:
@@ -74,4 +76,25 @@ management:
         include: health,info
   endpoint:
     health:
+
       show-details: always
+
+      #Client (Frontend/Postman)
+      #  ↓
+      #CORS check (application.yml)
+      #  ↓
+      #LoggingFilter
+      #  ↓
+      #JwtAuthenticationFilter
+      #  ↓
+      #Routing (application.yml)
+      #  ↓
+      #Microservice
+      #  ↓
+      #Response
+      #  ↓
+      #LoggingFilter
+
+#application.yml me maine Spring Cloud Gateway ke through CORS handling,
+#static routing, and actuator-based monitoring configure kiya hai,
+#jisse frontend communication secure aur microservice routing efficient ho jata ha

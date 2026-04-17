@@ -20,8 +20,8 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 import java.util.Map;
 
-@RestController
-@RequestMapping("/api/quantity")
+@RestController//api handler
+@RequestMapping("/api/quantity" )//base url
 @CrossOrigin(origins = {"http://localhost:5173", "http://localhost:3000", "http://localhost:8080","https://quantity-measurement-app-frontend-puce.vercel.app"})
 public class QuantityController {
 
@@ -80,6 +80,8 @@ public class QuantityController {
             double result = quantityService.convert(request.getValue(), request.getFromUnit(), request.getToUnit());
             if (username != null && !username.isEmpty()) {
                 quantityService.saveConvertOperation(request.getValue(), request.getFromUnit(), request.getToUnit(), result);
+                //Agar JWT present hai → history save
+                // Agar nahi → sirf result
             }
             return ResponseEntity.ok(Map.of(
                 "result", result, "from", request.getFromUnit(),
